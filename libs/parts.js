@@ -1,5 +1,11 @@
 const webpack = require('webpack');
 
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const PurifyCSSPlugin = require('purifycss-webpack-plugin');
+
 exports.devServer = function(options) {
   return {
   	watchOptions: {
@@ -60,6 +66,7 @@ exports.minify = function() {
   return {
     plugins: [
       new webpack.optimize.UglifyJsPlugin({
+        mangle: true, //!!
         compress: {
           warnings: false
         }
@@ -67,3 +74,61 @@ exports.minify = function() {
     ]
   };
 }
+
+exports.setFreeVariable = function(key, value) {
+  const env = {};
+  env[key] = JSON.stringify(value);
+
+  return {
+    plugins: [
+      new webpack.DefinePlugin(env)
+    ]
+  };
+}
+
+exports.clean = function(path) {
+  return {
+    plugins: [
+      new CleanWebpackPlugin([path], {
+        // Without `root` CleanWebpackPlugin won't point to our
+        // project and will fail to work.
+        root: process.cwd()
+      })
+    ]
+  };
+}
+
+exports.extractCSS = function(paths) {
+  return {
+    module: {
+      loaders: [
+        // Extract CSS during build
+        {
+          test: /\.css$/,
+          loader: ExtractTextPlugin.extract('style', 'css'),
+          include: paths
+        }
+      ]
+    },
+    plugins: [
+      // Output extracted CSS to a file
+      new ExtractTextPlugin('[name].[chunkhash].css')
+    ]
+  };
+}
+
+
+exports.purifyCSS = function(paths) {
+  return {
+    plugins: [
+      new PurifyCSSPlugin({
+        basePath: process.cwd(),
+        // `paths` is used to point PurifyCSS to files not
+        // visible to Webpack. You can pass glob patterns
+        // to it.
+        paths: paths
+      }),
+    ]
+  }
+}
+

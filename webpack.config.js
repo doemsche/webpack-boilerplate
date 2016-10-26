@@ -8,6 +8,7 @@ const validate = require('webpack-validator');
 const parts = require('./libs/parts');
 
 
+
 const PATHS = {
   app: path.join(__dirname, 'app'),
   build: path.join(__dirname, 'build')
@@ -23,7 +24,7 @@ const common = {
   },
   output: {
     path: PATHS.build,
-    filename: '[name].js'
+    filename: '[name].[chunkhash].js'
   },
   plugins: [
     new HtmlWebpackPlugin({
@@ -43,8 +44,14 @@ switch(process.env.npm_lifecycle_event) {
       {
         devtool: 'source-map'
       },
+      parts.clean(PATHS.build),
+      parts.setFreeVariable(
+        'process.env.NODE_ENV',
+        'production'
+      ),
       parts.minify(),
-      parts.setupCSS(PATHS.app)
+      parts.extractCSS(PATHS.app),
+      parts.purifyCSS([PATHS.app])
     );
     break;
   default:
