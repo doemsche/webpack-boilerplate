@@ -1,3 +1,7 @@
 body {
   background: lime;
 }
+
+.icon {
+   background-image: url('../assets/test_css.png');
+}

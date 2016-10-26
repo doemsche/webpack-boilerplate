@@ -1,4 +1,5 @@
 const path = require('path');
+
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const merge = require('webpack-merge');
@@ -7,15 +8,17 @@ const validate = require('webpack-validator');
 
 const parts = require('./libs/parts');
 
+const TARGET = process.env.npm_lifecycle_event;
 
+process.env.BABEL_ENV = TARGET;
 
 const PATHS = {
   app: path.join(__dirname, 'app'),
-  build: path.join(__dirname, 'build')
+  build: path.join(__dirname, 'build'),
+  images: path.join(__dirname, 'assets')
 };
 
 const common = {
-
   // Entry accepts a path or an object of entries.
   // We'll be using the latter form given it's
   // convenient with more complex configurations.
@@ -24,15 +27,44 @@ const common = {
   },
   output: {
     path: PATHS.build,
-    filename: '[name].[chunkhash].js'
+    filename: '[name].[hash].js'
+  },
+  resolve:{
+    extensions: ['','.js','.jsx']
+  },
+  module: {
+    loaders: [
+      {
+        test: /\.(jpg|png)$/,
+        loader: 'file?name=[path][name].[hash].[ext]',
+        include: PATHS.images
+      },
+      {
+        test: /\.json$/,
+        loader: "json",
+        include: PATHS.app
+      },
+      {
+        test: /\.jsx?$/,
+        // Enable caching for improved performance during development
+        // It uses default OS directory by default. If you need
+        // something more custom, pass a path to it.
+        // I.e., babel?cacheDirectory=<path>
+        loaders: ['babel?cacheDirectory'],
+        // Parse only app files! Without this it will go through
+        // the entire project. In addition to being slow,
+        // that will most likely result in an error.
+        include: PATHS.app
+      }
+    ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      title: 'Webpack demo'
+      title: 'Webpack boilerplate',
+      template: PATHS.app +"/index.tpl.html"
     })
   ]
 };
-
 
 var config;
 
